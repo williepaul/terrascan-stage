@@ -30,9 +30,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/accurics/terrascan/pkg/iac-providers/output"
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
 
-	"github.com/accurics/terrascan/pkg/policy"
+	"github.com/accurics/terrascan/pkg/iac-providers/output"
 
 	"github.com/accurics/terrascan/pkg/results"
 	"github.com/accurics/terrascan/pkg/utils"
@@ -255,7 +255,7 @@ func (e *Engine) Configure() error {
 }
 
 // GetResults Fetches results from OPA engine policy evaluation
-func (e *Engine) GetResults() policy.EngineOutput {
+func (e *Engine) GetResults() policyengine.EngineOutput {
 	return e.results
 }
 
@@ -298,7 +298,7 @@ func (e *Engine) reportViolation(regoData *RegoData, resource *output.ResourceCo
 }
 
 // Evaluate Executes compiled OPA queries against the input JSON data
-func (e *Engine) Evaluate(engineInput policy.EngineInput) (policy.EngineOutput, error) {
+func (e *Engine) Evaluate(engineInput policyengine.EngineInput) (policyengine.EngineOutput, error) {
 	// Keep track of how long it takes to evaluate the policies
 	start := time.Now()
 

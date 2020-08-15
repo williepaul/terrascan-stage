@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/accurics/terrascan/pkg/policy"
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
 )
 
 const (
@@ -32,7 +32,7 @@ func init() {
 }
 
 // JSONWriter prints data in JSON format
-func JSONWriter(data policy.EngineOutput, writer io.Writer) error {
+func JSONWriter(data policyengine.EngineOutput, writer io.Writer) error {
 	j, _ := json.MarshalIndent(data, "", "  ")
 	writer.Write(j)
 	writer.Write([]byte{'\n'})

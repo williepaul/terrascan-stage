@@ -17,13 +17,13 @@
 package runtime
 
 import (
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
 	"go.uber.org/zap"
 
 	iacProvider "github.com/accurics/terrascan/pkg/iac-providers"
 	"github.com/accurics/terrascan/pkg/iac-providers/output"
 	"github.com/accurics/terrascan/pkg/notifications"
-	"github.com/accurics/terrascan/pkg/policy"
-	opa "github.com/accurics/terrascan/pkg/policy/opa"
+	opa "github.com/accurics/terrascan/pkg/policy-engine/opa"
 )
 
 // Executor object
@@ -36,7 +36,7 @@ type Executor struct {
 	iacVersion   string
 	configFile   string
 	iacProvider  iacProvider.IacProvider
-	policyEngine policy.Engine
+	policyEngine policyengine.Engine
 	notifiers    []notifications.Notifier
 }
 
@@ -95,7 +95,7 @@ func (e *Executor) Init() error {
 }
 
 // Execute validates the inputs, processes the IaC, creates json output
-func (e *Executor) Execute() (results policy.EngineOutput, err error) {
+func (e *Executor) Execute() (results policyengine.EngineOutput, err error) {
 
 	// create results output from Iac
 	var normalized output.AllResourceConfigs
@@ -109,7 +109,7 @@ func (e *Executor) Execute() (results policy.EngineOutput, err error) {
 	}
 
 	// evaluate policies
-	results, err = e.policyEngine.Evaluate(policy.EngineInput{InputData: &normalized})
+	results, err = e.policyEngine.Evaluate(policyengine.EngineInput{InputData: &normalized})
 	if err != nil {
 		return results, err
 	}

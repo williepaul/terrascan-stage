@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/accurics/terrascan/pkg/policy"
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
 
 	"github.com/open-policy-agent/opa/rego"
 )
@@ -55,7 +55,7 @@ type EngineStats struct {
 
 // Engine Implements the policy engine interface
 type Engine struct {
-	results     policy.EngineOutput
+	results     policyengine.EngineOutput
 	context     context.Context
 	regoFileMap map[string][]byte
 	regoDataMap map[string]*RegoData

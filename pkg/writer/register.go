@@ -19,16 +19,16 @@ package writer
 import (
 	"io"
 
-	"github.com/accurics/terrascan/pkg/policy"
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
 )
 
 // supportedFormat data type for supported formats
 type supportedFormat string
 
 // writerMap stores mapping of supported writer formats with respective functions
-var writerMap = make(map[supportedFormat](func(policy.EngineOutput, io.Writer) error))
+var writerMap = make(map[supportedFormat](func(policyengine.EngineOutput, io.Writer) error))
 
 // RegisterWriter registers a writer for terrascan
-func RegisterWriter(format supportedFormat, writerFunc func(policy.EngineOutput, io.Writer) error) {
+func RegisterWriter(format supportedFormat, writerFunc func(policyengine.EngineOutput, io.Writer) error) {
 	writerMap[format] = writerFunc
 }

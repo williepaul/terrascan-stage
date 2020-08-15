@@ -14,13 +14,18 @@
     limitations under the License.
 */
 
-package policy
+package policyengine
 
-const (
-	aws supportedCloudType = "aws"
-)
+// Engine Policy Engine interface
+type Engine interface {
+	Init(string) error
+	Configure() error
+	Evaluate(EngineInput) (EngineOutput, error)
+	GetResults() EngineOutput
+	Release() error
+}
 
-func init() {
-	// Register aws as a cloud provider with terrascan
-	RegisterCloudProvider(aws)
+type Policy interface {
+	Load()
+	Compile()
 }

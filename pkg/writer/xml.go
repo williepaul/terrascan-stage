@@ -20,7 +20,8 @@ import (
 	"encoding/xml"
 	"io"
 
-	"github.com/accurics/terrascan/pkg/policy"
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
+
 	"go.uber.org/zap"
 )
 
@@ -33,7 +34,7 @@ func init() {
 }
 
 // XMLWriter prints data in XML format
-func XMLWriter(data policy.EngineOutput, writer io.Writer) error {
+func XMLWriter(data policyengine.EngineOutput, writer io.Writer) error {
 	j, err := xml.MarshalIndent(data, "", "  ")
 	if err != nil {
 		zap.S().Errorf("failed to write XML output. error: '%v'", err)

@@ -21,12 +21,13 @@ import (
 	"reflect"
 	"testing"
 
+	policyengine "github.com/accurics/terrascan/pkg/policy-engine"
+
 	iacProvider "github.com/accurics/terrascan/pkg/iac-providers"
 	"github.com/accurics/terrascan/pkg/iac-providers/output"
 	tfv12 "github.com/accurics/terrascan/pkg/iac-providers/terraform/v12"
 	"github.com/accurics/terrascan/pkg/notifications"
 	"github.com/accurics/terrascan/pkg/notifications/webhook"
-	"github.com/accurics/terrascan/pkg/policy"
 )
 
 var (
@@ -62,11 +63,11 @@ func (m MockPolicyEngine) Configure() error {
 	return m.err
 }
 
-func (m MockPolicyEngine) Evaluate(input policy.EngineInput) (out policy.EngineOutput, err error) {
+func (m MockPolicyEngine) Evaluate(input policyengine.EngineInput) (out policyengine.EngineOutput, err error) {
 	return out, m.err
 }
 
-func (m MockPolicyEngine) GetResults() (out policy.EngineOutput) {
+func (m MockPolicyEngine) GetResults() (out policyengine.EngineOutput) {
 	return out
 }
 

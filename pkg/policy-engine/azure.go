@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-package policy
+package policyengine
 
 const (
 	azure supportedCloudType = "azure"
