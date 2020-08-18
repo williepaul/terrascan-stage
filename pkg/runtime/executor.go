@@ -105,7 +105,13 @@ func (e *Executor) Execute() (results policyengine.EngineOutput, err error) {
 		normalized, err = e.iacProvider.LoadIacDir(e.dirPath)
 	}
 	if err != nil {
-		return results, err
+		return policyengine.EngineOutput{}, err
+	}
+
+	// configure policies
+	err = e.policyEngine.Configure()
+	if err != nil {
+		return policyengine.EngineOutput{}, err
 	}
 
 	// evaluate policies

@@ -37,8 +37,9 @@ type RegoMetadata struct {
 	Version      int                    `json:"version"`
 }
 
-// RegoData Stores all information needed to evaluate and report on a rego rule
-type RegoData struct {
+// Rule Stores all information needed to evaluate and report on a rego rule
+type Rule struct {
+	context       context.Context
 	Metadata      RegoMetadata
 	RawRego       []byte
 	PreparedQuery *rego.PreparedEvalQuery
@@ -55,9 +56,24 @@ type EngineStats struct {
 
 // Engine Implements the policy engine interface
 type Engine struct {
-	results     policyengine.EngineOutput
+	policy  *Policy
+	results policyengine.EngineOutput
+	stats   EngineStats
+}
+
+type PolicyStats struct {
+	ruleCount         int
+	regoFileCount     int
+	metadataFileCount int
+	metadataCount     int
+}
+
+// Policy Implements the policy interface
+type Policy struct {
+	path        string
 	context     context.Context
 	regoFileMap map[string][]byte
-	regoDataMap map[string]*RegoData
-	stats       EngineStats
+	ruleMap     map[string]*Rule
+	stats       PolicyStats
+	rules       []*Rule
 }
