@@ -29,6 +29,10 @@ func NewPolicy() (*Policy, error) {
 
 // Init initializes the Opa policy
 func (p *Policy) Init(policyPath string) error {
+	_, err := os.Stat(policyPath)
+	if err != nil {
+		return err
+	}
 	p.path = policyPath
 	return nil
 }
@@ -135,6 +139,7 @@ func (p *Policy) Load() error {
 			}
 
 			regoData := Rule{
+				context:  p.context,
 				Metadata: *regoMetadata,
 			}
 
@@ -156,8 +161,8 @@ func (p *Policy) Load() error {
 
 			// Apply templates if available
 			var templateData bytes.Buffer
-			t := template.New("opa")
-			_, err = t.Parse(string(p.regoFileMap[templateFile]))
+			var t *template.Template
+			t, err = template.New("opa").Option("missingkey=error").Parse(string(p.regoFileMap[templateFile]))
 			if err != nil {
 				zap.S().Debug("unable to parse template", zap.String("template", regoDataList[j].Metadata.File))
 				continue

@@ -6,6 +6,7 @@ type Store interface {
 	GetResults() []*Violation
 }
 
+// Result stores violations that will be passed back to the writer interface
 type Result interface {
 	Add(violation *Violation)
 	GetAll() []*Violation

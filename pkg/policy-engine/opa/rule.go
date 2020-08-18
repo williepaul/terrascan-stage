@@ -1,8 +1,6 @@
 package opa
 
 import (
-	"context"
-
 	"github.com/accurics/terrascan/pkg/iac-providers/output"
 	"github.com/accurics/terrascan/pkg/results"
 	"github.com/accurics/terrascan/pkg/utils"
@@ -30,8 +28,9 @@ func (r *Rule) createViolation(resource *output.ResourceConfig) *results.Violati
 	return violation
 }
 
+// Evaluate takes in the inputData, runs it against the rule, and reports one or more violations
 func (r *Rule) Evaluate(inputData *output.AllResourceConfigs) ([]*results.Violation, error) {
-	rs, err := r.PreparedQuery.Eval(context.Background(), rego.EvalInput(inputData))
+	rs, err := r.PreparedQuery.Eval(r.context, rego.EvalInput(inputData))
 	if err != nil {
 		zap.S().Warn("failed to run prepared query", zap.String("rule", "'"+string(r.RawRego)+"'"))
 		return nil, err

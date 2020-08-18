@@ -25,6 +25,7 @@ type Engine interface {
 	Release() error
 }
 
+// Policy Policy interface
 type Policy interface {
 	Load()
 	Compile()

@@ -47,11 +47,10 @@ type Rule struct {
 
 // EngineStats Contains misc stats
 type EngineStats struct {
-	ruleCount         int
-	regoFileCount     int
-	metadataFileCount int
-	metadataCount     int
-	runTime           time.Duration
+	ruleCount           int
+	rulesWithViolations int
+	rulesWithErrors     int
+	runTime             time.Duration
 }
 
 // Engine Implements the policy engine interface
@@ -61,6 +60,7 @@ type Engine struct {
 	stats   EngineStats
 }
 
+// PolicyStats contain stats related to the policies being loaded
 type PolicyStats struct {
 	ruleCount         int
 	regoFileCount     int
@@ -75,5 +75,4 @@ type Policy struct {
 	regoFileMap map[string][]byte
 	ruleMap     map[string]*Rule
 	stats       PolicyStats
-	rules       []*Rule
 }

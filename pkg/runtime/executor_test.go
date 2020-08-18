@@ -241,7 +241,7 @@ func TestInit(t *testing.T) {
 				configFile: "./testdata/webhook.toml",
 				policyPath: "./testdata/notthere",
 			},
-			wantErr:         fmt.Errorf("failed to initialize OPA policy engine"),
+			wantErr:         fmt.Errorf("failed to initialize policy engine"),
 			wantIacProvider: &tfv12.TfV12{},
 			wantNotifiers:   []notifications.Notifier{&webhook.Webhook{}},
 		},

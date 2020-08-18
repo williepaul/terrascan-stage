@@ -92,17 +92,20 @@ func (e *Engine) Evaluate(engineInput policyengine.EngineInput) (policyengine.En
 	// Keep track of how long it takes to evaluate the policies
 	start := time.Now()
 
+	ruleList := e.policy.GetRules()
 	// Evaluate the policy against each resource type
-	for _, r := range e.policy.GetRules() {
+	for _, r := range ruleList {
 
 		// Execute the prepared query.
 		violations, err := r.Evaluate(engineInput.InputData)
 		if err != nil {
 			zap.S().Warn("error encountered while evaluating rule", zap.Error(err))
+			e.stats.rulesWithErrors++
 			continue
 		}
 
 		if len(violations) > 0 {
+			e.stats.rulesWithViolations++
 			e.results.ViolationStore.Violations = append(e.results.ViolationStore.Violations, violations...)
 			for i := range violations {
 				switch violations[i].Severity {
@@ -114,6 +117,7 @@ func (e *Engine) Evaluate(engineInput policyengine.EngineInput) (policyengine.En
 					e.results.ViolationStore.Count.LowCount++
 				default:
 					zap.S().Debug("invalid severity in policy", zap.String("severity", violations[i].Severity), zap.String("rule name", violations[i].RuleName))
+					e.stats.rulesWithErrors++
 				}
 				e.results.ViolationStore.Count.TotalCount++
 			}
@@ -121,6 +125,7 @@ func (e *Engine) Evaluate(engineInput policyengine.EngineInput) (policyengine.En
 
 	}
 
+	e.stats.ruleCount = len(ruleList)
 	e.stats.runTime = time.Since(start)
 	return e.results, nil
 }
