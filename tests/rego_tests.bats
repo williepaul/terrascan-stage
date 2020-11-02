@@ -1,5 +1,16 @@
 #!/usr/bin/env bats
 
+setup() {
+  if $(terrascan -h); then
+    echo "Terrascan installed"
+  elif $(ls bin/terrascan); then
+    mv bin/terrascan /usr/local/bin
+  else
+    make build
+    mv bin/terrascan /usr/local/bin
+  fi
+}
+
 @test "terrascan" {
   # This runs Terrascan with a JSON output
   run terrascan scan -t aws \
