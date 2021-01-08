@@ -13,14 +13,13 @@ require (
 	github.com/hashicorp/terraform v0.12.28
 	github.com/iancoleman/strcase v0.1.1
 	github.com/mattn/go-isatty v0.0.8
-	github.com/open-policy-agent/opa v0.22.0
+	github.com/open-policy-agent/opa v0.25.2
 	github.com/pelletier/go-toml v1.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.3.4
 	github.com/spf13/cobra v1.0.0
 	github.com/zclconf/go-cty v1.2.1
 	go.uber.org/zap v1.13.0
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
 	golang.org/x/tools v0.0.0-20201201064407-fd09bd90d85c // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
