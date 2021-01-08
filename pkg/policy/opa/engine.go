@@ -78,22 +78,24 @@ func (e *Engine) LoadRegoMetadata(metaFilename string) (*RegoMetadata, error) {
 // loadRawRegoFilesIntoMap imports raw rego files into a map
 func (e *Engine) loadRawRegoFilesIntoMap(currentDir string, regoDataList []*RegoData, regoFileMap *map[string][]byte) error {
 	for i := range regoDataList {
-		regoPath := filepath.Join(currentDir, regoDataList[i].Metadata.File)
-		rawRegoData, err := ioutil.ReadFile(regoPath)
-		if err != nil {
-			zap.S().Error("failed to load rego file", zap.String("file", regoPath), zap.Error(err))
-			continue
-		}
+		for j := range regoDataList[i].Metadata.File {
+			regoPath := filepath.Join(currentDir, regoDataList[i].Metadata.File[j])
+			rawRegoData, err := ioutil.ReadFile(regoPath)
+			if err != nil {
+				zap.S().Error("failed to load rego file", zap.String("file", regoPath), zap.Error(err))
+				continue
+			}
 
-		// Load the raw rego into the map
-		_, ok := (*regoFileMap)[regoPath]
-		if ok {
-			// Already loaded this file, so continue
-			zap.S().Debug("skipping already loaded rego file", zap.String("file", regoPath))
-			continue
-		}
+			// Load the raw rego into the map
+			_, ok := (*regoFileMap)[regoPath]
+			if ok {
+				// Already loaded this file, so continue
+				zap.S().Debug("skipping already loaded rego file", zap.String("file", regoPath))
+				continue
+			}
 
-		(*regoFileMap)[regoPath] = rawRegoData
+			(*regoFileMap)[regoPath] = rawRegoData
+		}
 	}
 	return nil
 }
@@ -178,28 +180,33 @@ func (e *Engine) LoadRegoFiles(policyPath string) error {
 		for j := range regoDataList {
 			e.stats.metadataCount++
 
-			// Check if the template file exists
-			templateFile := filepath.Join(dirList[i], regoDataList[j].Metadata.File)
+			for _, templateFileName := range regoDataList[j].Metadata.File {
 
-			// Apply templates if available
-			var templateData bytes.Buffer
-			t := template.New("opa")
-			_, err = t.Parse(string(e.regoFileMap[templateFile]))
-			if err != nil {
-				zap.S().Error("unable to parse template", zap.String("template", regoDataList[j].Metadata.File), zap.Error(err))
-				continue
-			}
-			if err = t.Execute(&templateData, regoDataList[j].Metadata.TemplateArgs); err != nil {
-				zap.S().Error("unable to execute template", zap.String("template", regoDataList[j].Metadata.File), zap.Error(err))
-				continue
-			}
+				// Check if the template file exists
+				templateFile := filepath.Join(dirList[i], templateFileName)
 
-			regoDataList[j].RawRego = templateData.Bytes()
-			if regoDataList[j].RawRego == nil {
-				zap.S().Debug("raw rego data was null after applying template", zap.String("template", regoDataList[j].Metadata.File))
-				continue
+				// Apply templates if available
+				var templateData bytes.Buffer
+				t := template.New("opa")
+				_, err = t.Parse(string(e.regoFileMap[templateFile]))
+				if err != nil {
+					zap.S().Error("unable to parse template", zap.String("template", templateFileName), zap.Error(err))
+					continue
+				}
+				if err = t.Execute(&templateData, regoDataList[j].Metadata.TemplateArgs); err != nil {
+					zap.S().Error("unable to execute template", zap.String("template", templateFileName), zap.Error(err))
+					continue
+				}
+
+				templateBytes := templateData.Bytes()
+				if templateBytes == nil {
+					zap.S().Debug("raw rego data was null after applying template", zap.String("template", templateFileName))
+					continue
+				}
+				regoDataList[j].RawRego = append(regoDataList[j].RawRego, templateBytes)
+
+				e.regoDataMap[regoDataList[j].Metadata.ReferenceID] = regoDataList[j]
 			}
-			e.regoDataMap[regoDataList[j].Metadata.ReferenceID] = regoDataList[j]
 		}
 	}
 
@@ -213,12 +220,14 @@ func (e *Engine) LoadRegoFiles(policyPath string) error {
 // CompileRegoFiles Compiles rego files for faster evaluation
 func (e *Engine) CompileRegoFiles() error {
 	for k := range e.regoDataMap {
-		compiler, err := ast.CompileModules(map[string]string{
-			e.regoDataMap[k].Metadata.Name: string(e.regoDataMap[k].RawRego),
-		})
+		compileMap := make(map[string]string)
+		for x := range e.regoDataMap[k].Metadata.File {
+			compileMap[e.regoDataMap[k].Metadata.File[x]] = string(e.regoDataMap[k].RawRego[x])
+		}
+		compiler, err := ast.CompileModules(compileMap)
 		if err != nil {
-			zap.S().Error("error compiling rego files", zap.String("rule", e.regoDataMap[k].Metadata.Name),
-				zap.String("raw rego", string(e.regoDataMap[k].RawRego)), zap.Error(err))
+			zap.S().Error("error compiling rego files", zap.Any("rule", e.regoDataMap[k].Metadata.Name),
+				zap.Any("raw rego", e.regoDataMap[k].RawRego), zap.Error(err))
 			return err
 		}
 
@@ -231,7 +240,7 @@ func (e *Engine) CompileRegoFiles() error {
 		query, err := r.PrepareForEval(e.context)
 		if err != nil {
 			zap.S().Error("error creating prepared query", zap.String("rule", e.regoDataMap[k].Metadata.Name),
-				zap.String("raw rego", string(e.regoDataMap[k].RawRego)), zap.Error(err))
+				zap.Any("raw rego", e.regoDataMap[k].RawRego), zap.Error(err))
 			return err
 		}
 
@@ -292,7 +301,7 @@ func (e *Engine) reportViolation(regoData *RegoData, resource *output.ResourceCo
 		RuleID:       regoData.Metadata.ReferenceID,
 		Severity:     regoData.Metadata.Severity,
 		Category:     regoData.Metadata.Category,
-		RuleFile:     regoData.Metadata.File,
+		RuleFile:     "", //regoData.Metadata.File,
 		RuleData:     regoData.RawRego,
 		ResourceName: resource.Name,
 		ResourceType: resource.Type,
@@ -327,7 +336,7 @@ func (e *Engine) Evaluate(engineInput policy.EngineInput) (policy.EngineOutput, 
 		// Execute the prepared query.
 		rs, err := e.regoDataMap[k].PreparedQuery.Eval(e.context, rego.EvalInput(engineInput.InputData))
 		if err != nil {
-			zap.S().Warn("failed to run prepared query", zap.Error(err), zap.String("rule", "'"+k+"'"), zap.String("file", e.regoDataMap[k].Metadata.File))
+			zap.S().Warn("failed to run prepared query", zap.Error(err), zap.String("rule", "'"+k+"'"), zap.String("file", e.regoDataMap[k].Metadata.File[0]))
 			continue
 		}
 
@@ -382,7 +391,7 @@ func (e *Engine) Evaluate(engineInput policy.EngineInput) (policy.EngineOutput, 
 				continue
 			}
 
-			zap.S().Debug("violation found for rule with rego", zap.String("rego", string("\n")+string(e.regoDataMap[k].RawRego)+string("\n")))
+			zap.S().Debug("violation found for rule with rego", zap.String("rego", string("\n")+string(e.regoDataMap[k].RawRego[0])+string("\n")))
 
 			// Report the violation
 			e.reportViolation(e.regoDataMap[k], resource)

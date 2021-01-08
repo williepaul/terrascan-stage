@@ -28,7 +28,7 @@ import (
 // RegoMetadata The rego metadata struct which is read and saved from disk
 type RegoMetadata struct {
 	Name         string                 `json:"name"`
-	File         string                 `json:"file"`
+	File         []string               `json:"file"`
 	TemplateArgs map[string]interface{} `json:"template_args"`
 	Severity     string                 `json:"severity"`
 	Description  string                 `json:"description"`
@@ -40,7 +40,7 @@ type RegoMetadata struct {
 // RegoData Stores all information needed to evaluate and report on a rego rule
 type RegoData struct {
 	Metadata      RegoMetadata
-	RawRego       []byte
+	RawRego       [][]byte
 	PreparedQuery *rego.PreparedEvalQuery
 }
 
